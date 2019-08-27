@@ -7,12 +7,42 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.ram = [0] * 256
+        self.reg = [0] * 8
+        self.pc = 0
+        self.IR = 0
+        self.reg[7] = 0xf4
+        self.SP = 7
+        self.E = 0
+        self.L = 0
+        self.G = 0
+        self.live = True
         pass
+
+    def ram_read(self, address):
+        return self.ram[address]        
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
+
+    def push(self, a):
+        self.reg[self.SP] -= 1
+        self.ram[self.reg[self.SP]] = self.reg[a]
+    
+    def pop(self, a):
+        self.reg[a] = self.ram[self.reg[self.SP]]
+        self.reg[self.SP] += 1
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
+        with open(sys.argv[1]) as f:
+            for line in f:
+                if line[0] != '#' and line != '\n':
+                    self.ram[address] = int(line[0:8], 2)
+                    address += 1
+            f.closed    
+    
 
         # For now, we've just hardcoded a program:
 
@@ -37,6 +67,21 @@ class CPU:
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
+elif op == 'MUL':
+            self.reg[reg_a] *= self.reg[reg_b]
+        elif op == 'CMP':
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.E = 1
+                self.L = 0
+                self.G = 0
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.E = 0
+                self.L = 1
+                self.G = 0
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.E = 0
+                self.L = 0
+                self.G = 1
         else:
             raise Exception("Unsupported ALU operation")
 
